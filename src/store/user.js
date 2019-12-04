@@ -37,6 +37,15 @@ import {
   LOGIN_WITH_SOCIAL_REQUEST,
   LOGIN_WITH_SOCIAL_SUCCESS,
   LOGIN_WITH_SOCIAL_FAIL,
+  SEND_PASSWORD_RESET_CODE_REQUEST,
+  SEND_PASSWORD_RESET_CODE_SUCCESS,
+  SEND_PASSWORD_RESET_CODE_FAIL,
+  VERIFY_PASSWORD_RESET_CODE_REQUEST,
+  VERIFY_PASSWORD_RESET_CODE_SUCCESS,
+  VERIFY_PASSWORD_RESET_CODE_FAIL,
+  RESET_PASSWORD_REQUEST,
+  RESET_PASSWORD_SUCCESS,
+  RESET_PASSWORD_FAIL,
 } from '../constants/mutationTypes';
 
 const initState = {
@@ -77,6 +86,24 @@ const initState = {
     error: null,
   },
   verifyEmail: {
+    requesting: false,
+    status: '',
+    result: {},
+    error: null,
+  },
+  passwordResetCodeSending: {
+    requesting: false,
+    status: '',
+    result: {},
+    error: null,
+  },
+  passwordResetCodeVerifying: {
+    requesting: false,
+    status: '',
+    result: {},
+    error: null,
+  },
+  passwordResetting: {
     requesting: false,
     status: '',
     result: {},
@@ -205,6 +232,42 @@ const actions = {
   //   }
   // },
 
+  async sendPasswordResetCode({ commit }, pramas) {
+    commit(SEND_PASSWORD_RESET_CODE_REQUEST);
+    try {
+      const res = await User.sendPasswordResetCode(pramas);
+      const { data } = res;
+      commit(SEND_PASSWORD_RESET_CODE_SUCCESS, { data });
+    } catch (error) {
+      console.log(serializeError(error));
+      commit(SEND_PASSWORD_RESET_CODE_FAIL, { error: serializeError(error) });
+    }
+  },
+
+  async verifyPasswordResetCode({ commit }, pramas) {
+    commit(VERIFY_PASSWORD_RESET_CODE_REQUEST);
+    try {
+      const res = await User.verifyPasswordResetCode(pramas);
+      const { data } = res;
+      commit(VERIFY_PASSWORD_RESET_CODE_SUCCESS, { data });
+    } catch (error) {
+      console.log(serializeError(error));
+      commit(VERIFY_PASSWORD_RESET_CODE_FAIL, { error: serializeError(error) });
+    }
+  },
+
+  async resetPassword({ commit }, pramas) {
+    commit(RESET_PASSWORD_REQUEST);
+    try {
+      const res = await User.resetPassword(pramas);
+      const { data } = res;
+      commit(RESET_PASSWORD_SUCCESS, { data });
+    } catch (error) {
+      console.log(serializeError(error));
+      commit(RESET_PASSWORD_FAIL, { error: serializeError(error) });
+    }
+  },
+
   signOut({ commit }) {
     commit(SIGN_OUT);
     router.go('/login');
@@ -328,6 +391,48 @@ const mutations = {
     state.avatarUpdating.requesting = false;
     state.avatarUpdating.status = 'error';
     state.avatarUpdating.error = payload.error;
+  },
+  [SEND_PASSWORD_RESET_CODE_REQUEST](state) {
+    state.passwordResetCodeSending.requesting = true;
+    state.passwordResetCodeSending.status = '';
+  },
+  [SEND_PASSWORD_RESET_CODE_SUCCESS](state, payload) {
+    state.passwordResetCodeSending.requesting = false;
+    state.passwordResetCodeSending.status = 'success';
+    state.passwordResetCodeSending.result = payload.data;
+  },
+  [SEND_PASSWORD_RESET_CODE_FAIL](state, payload) {
+    state.passwordResetCodeSending.requesting = false;
+    state.passwordResetCodeSending.status = 'error';
+    state.passwordResetCodeSending.error = payload.error;
+  },
+  [VERIFY_PASSWORD_RESET_CODE_REQUEST](state) {
+    state.passwordResetCodeVerifying.requesting = true;
+    state.passwordResetCodeVerifying.status = '';
+  },
+  [VERIFY_PASSWORD_RESET_CODE_SUCCESS](state, payload) {
+    state.passwordResetCodeVerifying.requesting = false;
+    state.passwordResetCodeVerifying.status = 'success';
+    state.passwordResetCodeVerifying.result = payload.data;
+  },
+  [VERIFY_PASSWORD_RESET_CODE_FAIL](state, payload) {
+    state.passwordResetCodeVerifying.requesting = false;
+    state.passwordResetCodeVerifying.status = 'error';
+    state.passwordResetCodeVerifying.error = payload.error;
+  },
+  [RESET_PASSWORD_REQUEST](state) {
+    state.passwordResetting.requesting = true;
+    state.passwordResetting.status = '';
+  },
+  [RESET_PASSWORD_SUCCESS](state, payload) {
+    state.passwordResetting.requesting = false;
+    state.passwordResetting.status = 'success';
+    state.passwordResetting.result = payload.data;
+  },
+  [RESET_PASSWORD_FAIL](state, payload) {
+    state.passwordResetting.requesting = false;
+    state.passwordResetting.status = 'error';
+    state.passwordResetting.error = payload.error;
   },
   // [SIGN_OUT_REQUEST](state) {
   //   state.signOut.requesting = true;

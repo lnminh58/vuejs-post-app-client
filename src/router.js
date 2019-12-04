@@ -8,6 +8,7 @@ import store from '@/store';
 import Home from './views/Home.vue';
 import Profile from './views/Profile.vue';
 import Login from './views/Login.vue';
+import ForgetPassword from './views/ForgetPassword.vue';
 import Post from './views/Post.vue';
 import PostEdit from './views/PostEdit.vue';
 import PageNotFound from './views/Error/PageNotFound.vue';
@@ -42,6 +43,15 @@ const router = new Router({
       path: '/login',
       name: 'login',
       component: Login,
+      meta: {
+        public: true,
+        onlyWhenLoggedOut: true,
+      },
+    },
+    {
+      path: '/forget-password',
+      name: 'forget-password',
+      component: ForgetPassword,
       meta: {
         public: true,
         onlyWhenLoggedOut: true,

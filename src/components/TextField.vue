@@ -13,6 +13,7 @@
           :placeholder="$attrs.placeholder || `Enter ${name.toLowerCase()} here...`"
           :type="$attrs.type"
           v-model="innerValue"
+          :tabindex="$attrs.tabindex"
         />
         <slot name="description"></slot>
         <span class="form-text text-danger small" v-if="errors[0]">

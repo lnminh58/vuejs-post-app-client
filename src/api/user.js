@@ -13,6 +13,18 @@ export default class User {
     return http.post('/users/resend-account-activation-email', body, config);
   }
 
+  static sendPasswordResetCode(body, config) {
+    return http.post('/users/send-password-reset-code', body, config);
+  }
+
+  static verifyPasswordResetCode(body, config) {
+    return http.post('users/verify-password-reset-code', body, config);
+  }
+
+  static resetPassword(body, config) {
+    return http.post('users/reset-password', body, config);
+  }
+
   static changePassword(body, config) {
     return http.post('/users/change-password', body, config);
   }

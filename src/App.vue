@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div v-if="$route.path !== '/login'">
+    <div v-if="!$route.meta.public">
       <nav class="navbar navbar-expand-md navbar-dark nav position-fixed w-100">
         <a class="navbar-brand title font-weight-bold" @click="handleToogleSidebar">
           ADONIS / VUE JS
@@ -203,6 +203,7 @@ export default {
   text-shadow: 2px 2px 10px #444444d3;
   font-size: 20pt;
 }
+
 .nav {
   background: rgb(0, 40, 63);
   z-index: 1000;

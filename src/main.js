@@ -9,6 +9,8 @@ import VModal from 'vue-js-modal';
 import GSignInButton from 'vue-google-signin-button';
 import axios from 'axios';
 import { get } from 'lodash';
+import VueCarousel from 'vue-carousel';
+
 
 import VueToast from 'vue-toast-notification';
 import 'vue-toast-notification/dist/index.css';
@@ -30,6 +32,7 @@ Vue.use(VueToast, {
   position: 'top',
 });
 Vue.use(GSignInButton);
+Vue.use(VueCarousel);
 
 Vue.component('ValidationProvider', ValidationProvider);
 Vue.component('ValidationObserver', ValidationObserver);

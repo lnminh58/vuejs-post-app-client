@@ -60,11 +60,17 @@
             <span class="font-weight-normal" v-else>login</span>
           </button>
         </ValidationObserver>
-        <p class="muted mt-4 text-secondary text-center">
+        <p class="muted mt-4 mb-0 text-secondary text-center">
           Not registered?
           <a href="#" class="text-info" @click="$modal.show('registerModal')">
             Create an account
           </a>
+        </p>
+        <p class="muted text-secondary text-center">
+          Forget Password?
+          <router-link href="#" class="text-info" to="forget-password">
+            Click here!
+          </router-link>
         </p>
 
         <VFBLoginScope :appId="FACEBOOK_APP_ID" @login="handleLoginWithFacebook">
