@@ -50,15 +50,15 @@
                 @click="
                   toogleLikePost({
                     postId: _.get(post, 'id'),
-                    hasLiked: !!_.get(post, '__meta__.isUserLiked'),
+                    hasLiked: !!parseInt(_.get(post, '__meta__.isUserLiked'), 10),
                   })
                 "
               >
                 <i
                   class="fa fa-heart"
                   :class="{
-                    'text-danger': !!_.get(post, '__meta__.isUserLiked'),
-                    'text-secondary': !_.get(post, '__meta__.isUserLiked'),
+                    'text-danger': !!parseInt(_.get(post, '__meta__.isUserLiked'), 10),
+                    'text-secondary': !parseInt(_.get(post, '__meta__.isUserLiked'), 10),
                   }"
                 ></i>
               </button>

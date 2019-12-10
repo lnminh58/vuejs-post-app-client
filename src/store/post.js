@@ -83,7 +83,6 @@ const actions = {
   async savePost({ commit }, body) {
     commit(SAVE_POST_REQUEST);
     try {
-      console.log('body', body);
       const formFields = get(body, 'postForm');
       const media = get(body, 'media');
       const formData = new FormData();
@@ -98,7 +97,6 @@ const actions = {
         formData.append(field, value);
       });
 
-      console.log(formData.values);
       const res = await Post.savePost(formData);
       const { data } = res;
       commit(SAVE_POST_SUCCESS, { data });
@@ -285,7 +283,7 @@ const mutations = {
             __meta__: {
               ...get(post, '__meta__'),
               isUserLiked: 0,
-              totalLikeds: get(post, '__meta__.totalLikeds') - 1
+              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) - 1
             },
           }),),
       }
@@ -298,7 +296,7 @@ const mutations = {
             __meta__: {
               ...get(post, '__meta__'),
               isUserLiked: 1,
-              totalLikeds: get(post, '__meta__.totalLikeds') + 1
+              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) + 1
             },
           }),),
       };
@@ -322,7 +320,7 @@ const mutations = {
             __meta__: {
               ...get(post, '__meta__'),
               isUserLiked: 1,
-              totalLikeds: get(post, '__meta__.totalLikeds') + 1
+              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) + 1
             },
           }),),
       }
@@ -335,7 +333,7 @@ const mutations = {
             __meta__: {
               ...get(post, '__meta__'),
               isUserLiked: 0,
-              totalLikeds: get(post, '__meta__.totalLikeds') - 1,
+              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) - 1,
             },
           }),),
       };
