@@ -70,10 +70,71 @@
         <div class="spinner-grow mt-3" />
       </div>
     </div>
+    <modal
+      name="post-detail"
+      height="auto"
+      width="1000px"
+      :draggable="true"
+      transition="nice-modal-fade"
+      :delay="100"
+      classes="bg-light mt-4"
+    >
+      <div class="bg-light p-4 my-2 post-detail-container">
+        <div class="position-relative mb-5">
+          <img :src="_.get(postDetail, 'media[0].source')" class="img-fluid post-image" />
+
+          <button
+            class="btn btn-link btn-save"
+            @click="
+              toogleLikePost({
+                postId: _.get(postDetail, 'id'),
+                hasLiked: !!parseInt(_.get(postDetail, '__meta__.isUserLiked'), 10),
+              })
+            "
+          >
+            <i
+              class="fa fa-2x fa-heart"
+              :class="{
+                'text-danger': !!parseInt(_.get(postDetail, '__meta__.isUserLiked'), 10),
+                'text-secondary': !parseInt(_.get(postDetail, '__meta__.isUserLiked'), 10),
+              }"
+            ></i>
+          </button>
+
+          <div class="d-flex justify-content-between rounded shadow-lg mx-3 post-user-info">
+            <div class="d-flex text-secondary px-3 py-2">
+              <img
+                :src="
+                  _.get(postDetail, 'user.profile.avatarUrl') ||
+                    require('../assets/img/default-avatar.png')
+                "
+                alt=""
+                height="80px"
+                width="80px"
+                style="object-fit: cover"
+                class="rounded-circle shadow border border-light m-1"
+              />
+              <div class="mt-1 ml-2">
+                <span class="font-weight-bold d-block">{{
+                  _.get(postDetail, 'user.username')
+                }}</span>
+                <span class="small d-block">{{
+                  moment(_.get(postDetail, 'createdAt')).format('YYYY-MM-DD HH:mm')
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="lead py-5">
+          {{ _.get(postDetail, 'description') }}
+        </span>
+      </div>
+    </modal>
   </div>
 </template>
 
 <script>
+/* eslint-disable prefer-destructuring */
 import { mapGetters, mapState } from 'vuex';
 import { get, debounce } from 'lodash';
 
@@ -86,7 +147,7 @@ export default {
       postOrder: POST_ORDER.newest,
       search: '',
       POST_ORDER,
-      debounceSearchPost: debounce(this.handleSearchPost, 800)
+      debounceSearchPost: debounce(this.handleSearchPost, 800),
     };
   },
   computed: {
@@ -96,13 +157,15 @@ export default {
     ...mapGetters({
       currentUser: 'currentUser',
       publicPosts: 'publicPosts',
+      postDetail: 'postDetail',
     }),
   },
   components: {
     PostItem,
   },
-  mounted() {
-    this.getPosts({ page: 1 });
+  async mounted() {
+    await this.getPosts({ page: 1 });
+    this.$modal.show('post-detail');
   },
   methods: {
     onScroll({ target: { scrollTop, clientHeight, scrollHeight } }) {
@@ -120,15 +183,16 @@ export default {
     },
 
     getPosts({ page = 1 }) {
-      this.$store.dispatch('getPosts', { page, orderBy: this.postOrder, q: this.search });
+      return this.$store.dispatch('getPosts', { page, orderBy: this.postOrder, q: this.search });
     },
 
     handleClickOnLinking(postId) {
       this.$store.dispatch('openPostLinking', { postId });
     },
 
-    toogleLikePost(params) {
-      this.$store.dispatch('toogleLikePost', params);
+    async toogleLikePost(params) {
+      await this.$store.dispatch('toogleLikePost', params);
+      console.log(this.postDetail, this.publicPosts);
     },
 
     async handleLoadMorePost() {
@@ -157,5 +221,27 @@ export default {
 .post-container {
   height: calc(100vh - 170px);
   overflow-y: scroll;
+}
+.post-detail-container {
+  max-height: 80vh;
+  overflow-Y: scroll;
+}
+
+.post-user-info {
+  margin-top: -50px;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 100000;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.btn-save {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.btn-save i {
+  text-shadow: 1px 1px 10px #00000088;
 }
 </style>

@@ -344,6 +344,7 @@ const getters = {
   categories: state => get(state, 'category.result.data', []),
   myPosts: state => get(state, 'myPost.result.data', []),
   publicPosts: state => get(state, 'publicPost.result.data', []),
+  postDetail: state => get(state, 'publicPost.result.data[0]'),
 };
 
 export default {
