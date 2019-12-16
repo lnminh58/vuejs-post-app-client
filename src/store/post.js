@@ -26,6 +26,7 @@ import {
   TOOGLE_LIKE_POST_REQUEST,
   TOOGLE_LIKE_POST_SUCCESS,
   TOOGLE_LIKE_POST_FAIL,
+  OPEN_POST_DETAIL
 } from '../constants/mutationTypes';
 
 const initState = {
@@ -65,6 +66,7 @@ const initState = {
     result: null,
     error: null,
   },
+  postDetailId: null
 };
 
 const actions = {
@@ -171,6 +173,10 @@ const actions = {
       commit(TOOGLE_LIKE_POST_FAIL, { error: serializeError(error), ...body });
     }
   },
+
+  openPostDetail({ commit }, { postId }) {
+    commit(OPEN_POST_DETAIL, postId);
+  }
 };
 
 const mutations = {
@@ -338,13 +344,16 @@ const mutations = {
           }),),
       };
   },
+  [OPEN_POST_DETAIL] (state, payload) {
+    state.postDetailId = payload;
+  }
 };
 
 const getters = {
   categories: state => get(state, 'category.result.data', []),
   myPosts: state => get(state, 'myPost.result.data', []),
   publicPosts: state => get(state, 'publicPost.result.data', []),
-  postDetail: state => get(state, 'publicPost.result.data[0]'),
+  postDetail: state => get(state, 'publicPost.result.data', []).find(el => el.id === state.postDetailId),
 };
 
 export default {

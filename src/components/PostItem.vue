@@ -2,7 +2,13 @@
   <div class="position-relative post">
     <slot name="top"></slot>
     <div class="text-center img-container">
-      <img :src="_.get(post, 'media[0].source')" class="img-fluid post-image" />
+      <img
+        :src="_.get(post, 'media[0].source')"
+        class="img-fluid type-button"
+        @click="$emit('onOpenDetail')"
+        @click.middle="$emit('onOpenDetail')"
+        :style="{ height: imageHeight || 'auto' }"
+      />
     </div>
 
     <div class="post-detail p-2 text-secondary">
@@ -22,6 +28,7 @@
           target="_blank"
           :href="`${post.link}`"
           @click="$emit('onOpenLinking')"
+          @click.middle="$emit('onOpenLinking')"
         >
           <i class="fa fa-link"></i>
         </a>
@@ -36,6 +43,9 @@ export default {
     post: {
       type: Object,
     },
+    imageHeight: {
+      type: String
+    }
   },
 };
 </script>
@@ -59,7 +69,6 @@ export default {
   border: rgba(146, 146, 146, 0.1) 1px solid;
 }
 .post-image {
-  height: 300px;
   object-fit: cover;
 }
 
@@ -77,5 +86,9 @@ export default {
 
 .post-detail:hover {
   height: 200px;
+}
+
+.type-button:hover {
+  cursor: pointer;
 }
 </style>

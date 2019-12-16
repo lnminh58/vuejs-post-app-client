@@ -13,4 +13,4 @@ export const LOGIN_SOURCE = {
   google: 'GOOGLE',
 };
 
-export const POSTS_PER_PAGE = 15;
+export const POSTS_PER_PAGE = 12;

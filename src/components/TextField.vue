@@ -1,5 +1,5 @@
 <template>
-  <div class="attrs.class">
+  <div class="$attrs.class">
     <ValidationProvider
       :vid="vid"
       :name="name"

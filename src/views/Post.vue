@@ -7,11 +7,11 @@
     </div>
     <div class="row my-3 post-container" @scroll="onScroll">
       <div
-        class="col-12 col-md-4 mx-auto mx-md-0 p-2"
+        class="col-12 col-md-4 mx-auto mx-md-0 p-2 post-item-container"
         v-for="post in myPosts"
         :key="_.get(post, 'id')"
       >
-        <post-item :post="post">
+        <post-item :post="post" imageHeight='300px'>
           <div slot="top" class="dropdown action d-flex">
             <button
               type="button"
