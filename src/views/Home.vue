@@ -1,7 +1,20 @@
 <template>
   <div class="container-fluid">
     <div class="row my-3 no-gutters px-md-5">
-      <div class="form-group col-md-4 ml-auto pl-md-2">
+      <div class="col-6 col-md-3 d-flex align-items-center justify-content-center">
+        <span class="badge-secondary badge-pill px-3 py-1" v-if="hashtag">
+          {{ hashtag.tag }}
+          <i class="fa fa-close type-button" @click="hashtag = null"></i>
+        </span>
+      </div>
+      <div class="col-6 col-md-3 d-flex align-items-center justify-content-center" v-if="category">
+        In:
+        <span class="badge-secondary badge-pill px-3 py-1 ml-1">
+          {{ category.name }}
+          <i class="fa fa-close type-button" @click="category = null"></i>
+        </span>
+      </div>
+      <div class="mt-1 col-md-3 ml-auto pl-md-2 d-flex align-items-center">
         <input
           type="text"
           class="form-control"
@@ -10,7 +23,7 @@
           @input="debounceSearchPost"
         />
       </div>
-      <div class="form-group col-md-4 pl-md-2">
+      <div class="mt-1 col-md-3 pl-md-2 d-flex align-items-center">
         <select v-model="postOrder" class="form-control" @change="handleChangeOrder">
           <option :value="POST_ORDER.newest">Newest</option>
           <option :value="POST_ORDER.popular">Popular</option>
@@ -140,9 +153,14 @@
                 <span class="font-weight-bold d-block">{{
                   _.get(postDetail, 'user.username')
                 }}</span>
-                <span class="small font-weight-bold type-button"
-                  >In: {{ _.get(postDetail, 'category.name') }}</span
-                >
+                <span
+                  class="small font-weight-bold type-button"
+                  @click="handleChooseCategory(_.get(postDetail, 'category'))"
+                  >In:
+                  <span class="text-info">
+                    {{ _.get(postDetail, 'category.name') }}
+                  </span>
+                </span>
                 <span class="small d-block">{{
                   moment(_.get(postDetail, 'createdAt')).format('YYYY-MM-DD HH:mm')
                 }}</span>
@@ -158,8 +176,9 @@
             <span
               v-for="(hashtag, idx) in _.get(postDetail, 'hashtags', [])"
               :key="_.get(hashtag, 'id')"
-              class="badge badge-pill badge-secondary type-button"
+              class="badge badge-pill badge-secondary type-button hashtag"
               :class="{ 'ml-2': idx > 0 }"
+              @click="handleChooseHashtag(hashtag)"
             >
               {{ _.get(hashtag, 'tag') }}
             </span>
@@ -180,8 +199,9 @@
           target="_blank"
           @click="handleClickOnLinking(postDetail.id)"
           @click.middle="handleClickOnLinking(postDetail.id)"
-          >GO TO ORIGIN THREAD</a
         >
+          GO TO ORIGIN THREAD
+        </a>
       </div>
     </modal>
   </div>
@@ -200,6 +220,8 @@ export default {
       masoryPostId: null,
       postOrder: POST_ORDER.newest,
       search: '',
+      hashtag: null,
+      category: null,
       POST_ORDER,
       debounceSearchPost: debounce(this.handleSearchPost, 800),
     };
@@ -218,7 +240,16 @@ export default {
     PostItem,
   },
   async mounted() {
-    await this.getPosts({ page: 1 });
+    await this.getPosts();
+  },
+
+  watch: {
+    hashtag() {
+      this.getPosts();
+    },
+    category() {
+      this.getPosts();
+    },
   },
   methods: {
     onScroll({ target: { scrollTop, clientHeight, scrollHeight } }) {
@@ -228,15 +259,21 @@ export default {
     },
 
     handleChangeOrder() {
-      this.getPosts({ page: 1 });
+      this.getPosts();
     },
 
     handleSearchPost() {
-      this.getPosts({ page: 1 });
+      this.getPosts();
     },
 
-    getPosts({ page = 1 }) {
-      return this.$store.dispatch('getPosts', { page, orderBy: this.postOrder, q: this.search });
+    getPosts({ page = 1 } = {}) {
+      return this.$store.dispatch('getPosts', {
+        page,
+        orderBy: this.postOrder,
+        q: this.search,
+        hashtagId: get(this.hashtag, 'id'),
+        categoryId: get(this.category, 'id'),
+      });
     },
 
     handleClickOnLinking(postId) {
@@ -244,14 +281,22 @@ export default {
     },
 
     handleOpenPostDetail(postId) {
-      console.log(postId);
       this.$store.dispatch('openPostDetail', { postId });
       this.$modal.show('post-detail');
     },
 
+    handleChooseHashtag(hashtag) {
+      this.hashtag = hashtag;
+      this.$modal.hide('post-detail');
+    },
+
+    handleChooseCategory(category) {
+      this.category = category;
+      this.$modal.hide('post-detail');
+    },
+
     async toogleLikePost(params) {
       await this.$store.dispatch('toogleLikePost', params);
-      console.log(this.postDetail);
     },
 
     async handleLoadMorePost() {
@@ -284,7 +329,7 @@ export default {
 .post-detail-close {
   position: absolute;
   top: 30px;
-  left: 10px;
+  left: 15px;
   text-shadow: 1px 1px 5px #c5c5c588;
   z-index: 1002;
   color: white;
@@ -295,9 +340,14 @@ export default {
   background-color: #333;
 }
 
+.hashtag {
+  box-shadow: 0px 1px 6px rgb(105, 105, 105);
+}
+
 .type-button:hover {
   cursor: pointer;
 }
+
 .post-container {
   height: calc(100vh - 170px);
   overflow-y: scroll;
