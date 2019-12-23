@@ -1,12 +1,12 @@
 <template>
   <div id="app">
     <div v-if="!$route.meta.public">
-      <nav class="navbar navbar-expand-md navbar-dark nav position-fixed w-100">
+      <nav class="navbar navbar-expand-md navbar-dark nav position-fixed w-100 py-0">
         <a class="navbar-brand title font-weight-bold" @click="handleToogleSidebar">
           ADONIS / VUE JS
         </a>
         <button
-          class="navbar-toggler"
+          class="navbar-toggler border-0"
           type="button"
           data-toggle="collapse"
           data-target="#navbarSupportedContent"
@@ -18,7 +18,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
+          <ul class="navbar-nav mr-auto py-0">
             <li
               class="nav-item"
               :class="{ active: $route.path === route.path }"
@@ -29,12 +29,15 @@
                 {{ route.label }}
               </router-link>
             </li>
-            <button class="btn btn-outline-light d-block d-md-none" @click="handleSignOut">
+            <button
+              class="btn btn-outline-light btn-sm mb-1 d-block d-md-none"
+              @click="handleSignOut"
+            >
               Logout
             </button>
           </ul>
         </div>
-        <button class="btn btn-outline-light d-none d-md-block" @click="handleSignOut">
+        <button class="btn btn-outline-light btn-sm d-none d-md-block" @click="handleSignOut">
           Logout
         </button>
       </nav>
@@ -86,7 +89,10 @@
         </div>
         <div id="page-content-wrapper">
           <div>
-            <router-view />
+            <keep-alive :include="keepAliveComponent">
+              <router-view />
+            </keep-alive>
+            <router-view name="globalModal" />
           </div>
         </div>
       </div>
@@ -94,6 +100,8 @@
     <div v-else>
       <router-view />
     </div>
+
+    <confirm-dialog />
   </div>
 </template>
 <script>
@@ -104,9 +112,12 @@ import { GENDER, LOGIN_SOURCE } from './constants/defaultValues';
 import { getFbSdk, fbLogout, getFbLoginStatus } from './services/FacebookAuth';
 import { initGoogleAuth } from './services/GoogleAuth';
 
+import ConfirmDialog from './components/ConfirmDialog';
+
 export default {
   data() {
     return {
+      keepAliveComponent: 'home',
       GENDER,
       toggleSidebar: false,
       autoToggleSideBar: true,
@@ -119,7 +130,9 @@ export default {
       profile: 'userProfile',
     }),
   },
-
+  components: {
+    ConfirmDialog,
+  },
   watch: {
     currentUser() {
       const userId = get(this.currentUser, 'id');
@@ -252,7 +265,7 @@ body {
 
 #page-content-wrapper {
   min-width: calc(100vw - 16rem);
-  padding-top: 66px;
+  padding-top: 50px;
   margin-left: 16rem;
 }
 

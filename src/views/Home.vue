@@ -4,14 +4,14 @@
       <div class="col-6 col-md-3 d-flex align-items-center justify-content-center">
         <span class="badge-secondary badge-pill px-3 py-1" v-if="hashtag">
           {{ hashtag.tag }}
-          <i class="fa fa-close type-button" @click="hashtag = null"></i>
+          <i class="fa fa-close type-button" @click="clearQueryParams({ type: 'hashtag' })"></i>
         </span>
       </div>
       <div class="col-6 col-md-3 d-flex align-items-center justify-content-center" v-if="category">
         In:
         <span class="badge-secondary badge-pill px-3 py-1 ml-1">
           {{ category.name }}
-          <i class="fa fa-close type-button" @click="category = null"></i>
+          <i class="fa fa-close type-button" @click="clearQueryParams({ type: 'category' })"></i>
         </span>
       </div>
       <div class="mt-1 col-md-3 ml-auto pl-md-2 d-flex align-items-center">
@@ -99,129 +99,23 @@
         </div>
       </div>
     </div>
-    <modal
-      name="post-detail"
-      height="auto"
-      width="1150px"
-      :draggable="true"
-      transition="nice-modal-fade"
-      :delay="100"
-      classes="bg-transparent px-5"
-      :clickToClose="false"
-    >
-      <i
-        class="fa fa-3x fa-times-circle post-detail-close type-button"
-        @click="$modal.hide('post-detail')"
-      ></i>
-      <div class="bg-light p-3 my-2 post-detail-container position-relative">
-        <div class="position-relative mb-5">
-          <div class="text-center img-container">
-            <img :src="_.get(postDetail, 'media[0].source')" class="img-fluid post-detail-image" />
-          </div>
-
-          <button
-            class="btn btn-link btn-save"
-            @click="
-              toogleLikePost({
-                postId: _.get(postDetail, 'id'),
-                hasLiked: !!parseInt(_.get(postDetail, '__meta__.isUserLiked'), 10),
-              })
-            "
-          >
-            <i
-              class="fa fa-2x fa-heart"
-              :class="{
-                'text-danger': !!parseInt(_.get(postDetail, '__meta__.isUserLiked'), 10),
-                'text-secondary': !parseInt(_.get(postDetail, '__meta__.isUserLiked'), 10),
-              }"
-            ></i>
-          </button>
-
-          <div class="d-flex justify-content-between rounded shadow-lg mx-3 post-user-info">
-            <div class="d-flex text-secondary px-3 py-2">
-              <img
-                :src="
-                  _.get(postDetail, 'user.profile.avatarUrl') ||
-                    require('../assets/img/default-avatar.png')
-                "
-                height="80px"
-                width="80px"
-                style="object-fit: cover"
-                class="rounded-circle shadow border border-light m-1"
-              />
-              <div class="mt-1 ml-2">
-                <span class="font-weight-bold d-block">{{
-                  _.get(postDetail, 'user.username')
-                }}</span>
-                <span
-                  class="small font-weight-bold type-button"
-                  @click="handleChooseCategory(_.get(postDetail, 'category'))"
-                  >In:
-                  <span class="text-info">
-                    {{ _.get(postDetail, 'category.name') }}
-                  </span>
-                </span>
-                <span class="small d-block">{{
-                  moment(_.get(postDetail, 'createdAt')).format('YYYY-MM-DD HH:mm')
-                }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <span class="font-weight-bold d-block text-secondary lead">
-          {{ _.get(postDetail, 'title') }}
-        </span>
-        <div class="d-flex flex-row justify-content-between">
-          <div>
-            <span
-              v-for="(hashtag, idx) in _.get(postDetail, 'hashtags', [])"
-              :key="_.get(hashtag, 'id')"
-              class="badge badge-pill badge-secondary type-button hashtag"
-              :class="{ 'ml-2': idx > 0 }"
-              @click="handleChooseHashtag(hashtag)"
-            >
-              {{ _.get(hashtag, 'tag') }}
-            </span>
-          </div>
-          <div>
-            <span
-              >{{ _.get(postDetail, '__meta__.totalLikeds', 0) }} <i class="fa fa-heart mr-3"></i
-            ></span>
-            <span>{{ _.get(postDetail, 'view', 0) }} <i class="fa fa-eye"></i></span>
-          </div>
-        </div>
-        <p class="lead text-justify">
-          {{ _.get(postDetail, 'description') }}
-        </p>
-        <a
-          class="btn btn-block btn-info text-light"
-          :href="`${_.get(postDetail, 'link')}`"
-          target="_blank"
-          @click="handleClickOnLinking(postDetail.id)"
-          @click.middle="handleClickOnLinking(postDetail.id)"
-        >
-          GO TO ORIGIN THREAD
-        </a>
-      </div>
-    </modal>
   </div>
 </template>
 <script>
 /* eslint-disable prefer-destructuring */
 import { mapGetters, mapState } from 'vuex';
-import { get, debounce } from 'lodash';
+import { get, debounce, isEqual } from 'lodash';
 
 import PostItem from '@/components/PostItem.vue';
 import { POST_ORDER } from '@/constants/defaultValues';
 
 export default {
+  name: 'home',
   data() {
     return {
       masoryPostId: null,
       postOrder: POST_ORDER.newest,
       search: '',
-      hashtag: null,
-      category: null,
       POST_ORDER,
       debounceSearchPost: debounce(this.handleSearchPost, 800),
     };
@@ -229,6 +123,8 @@ export default {
   computed: {
     ...mapState({
       publicPost: state => get(state, 'post.publicPost'),
+      hashtag: state => get(state, 'post.postQuery.hashtag'),
+      category: state => get(state, 'post.postQuery.category'),
     }),
     ...mapGetters({
       currentUser: 'currentUser',
@@ -236,21 +132,29 @@ export default {
       postDetail: 'postDetail',
     }),
   },
+
   components: {
     PostItem,
   },
+
   async mounted() {
     await this.getPosts();
   },
 
   watch: {
-    hashtag() {
-      this.getPosts();
+    hashtag(newHashtag, oldHashtag) {
+      if (!isEqual(newHashtag, oldHashtag)) {
+        this.getPosts();
+      }
     },
-    category() {
-      this.getPosts();
+
+    category(newCategory, oldCategory) {
+      if (!isEqual(newCategory, oldCategory)) {
+        this.getPosts();
+      }
     },
   },
+
   methods: {
     onScroll({ target: { scrollTop, clientHeight, scrollHeight } }) {
       if (scrollTop + clientHeight >= scrollHeight) {
@@ -281,18 +185,20 @@ export default {
     },
 
     handleOpenPostDetail(postId) {
-      this.$store.dispatch('openPostDetail', { postId });
-      this.$modal.show('post-detail');
+      this.$router.push(`/post-detail/${postId}`);
     },
 
-    handleChooseHashtag(hashtag) {
-      this.hashtag = hashtag;
-      this.$modal.hide('post-detail');
-    },
+    clearQueryParams({ type }) {
+      switch (type) {
+        case 'hashtag':
+          this.$store.dispatch('changeHashtagParam', null);
+          break;
+        case 'category':
+          this.$store.dispatch('changeCategoryParam', null);
+          break;
 
-    handleChooseCategory(category) {
-      this.category = category;
-      this.$modal.hide('post-detail');
+        default:
+      }
     },
 
     async toogleLikePost(params) {
@@ -349,7 +255,7 @@ export default {
 }
 
 .post-container {
-  height: calc(100vh - 170px);
+  height: calc(100vh - 130px);
   overflow-y: scroll;
 }
 .post-detail-container {

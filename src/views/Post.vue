@@ -11,7 +11,11 @@
         v-for="post in myPosts"
         :key="_.get(post, 'id')"
       >
-        <post-item :post="post" imageHeight='300px'>
+        <post-item
+          :post="post"
+          imageHeight="300px"
+          @onOpenDetail="handleOpenPostDetail(post.id)"
+        >
           <div slot="top" class="dropdown action d-flex">
             <button
               type="button"
@@ -25,10 +29,7 @@
             </button>
             <div class="dropdown-menu" :aria-labelledby="`action-${post.id}`">
               <a class="btn btn-block m-0 btn-link text-secondary">Edit</a>
-              <a
-                class="btn btn-block m-0 btn-link text-danger"
-                @click="handleDeletePost(post.id)"
-              >
+              <a class="btn btn-block m-0 btn-link text-danger" @click="handleDeletePost(post.id)">
                 Delete
               </a>
             </div>
@@ -76,6 +77,10 @@ export default {
       }
     },
 
+    handleOpenPostDetail(postId) {
+      this.$router.push(`/post-detail/${postId}`);
+    },
+
     async handleLoadMorePost() {
       const currentPage = get(this.myPost, 'result.page');
       const lastPage = get(this.myPost, 'result.lastPage');
@@ -103,7 +108,7 @@ export default {
 }
 
 .post-container {
-  height: calc(100vh - 153px);
+  height: calc(100vh - 137px);
   overflow-y: scroll;
 }
 </style>

@@ -16,6 +16,17 @@ export default class Post {
     });
   }
 
+  static getLikedPosts(params, config = {}) {
+    return http.get('users/post-liked', {
+      ...config,
+      params,
+    });
+  }
+
+  static getPostDetail(id, config = {}) {
+    return http.get(`post/get-post-detail/${id}`, config);
+  }
+
   static getPostByUser(params, config = {}) {
     return http.get('users/post', {
       ...config,

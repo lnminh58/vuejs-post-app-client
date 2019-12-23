@@ -1,5 +1,5 @@
 import { serializeError } from 'serialize-error';
-import { get } from 'lodash';
+import { get, set } from 'lodash';
 
 // eslint-disable-next-line import/no-cycle
 import Post from '@/api/post';
@@ -22,11 +22,20 @@ import {
   GET_POSTS_REQUEST,
   GET_POSTS_SUCCESS,
   GET_POSTS_FAIL,
-  OPEN_POST_LINKING,
+  OPEN_POST_LINKING_REQUEST,
+  OPEN_POST_LINKING_SUCCESS,
+  OPEN_POST_LINKING_FAIL,
   TOOGLE_LIKE_POST_REQUEST,
   TOOGLE_LIKE_POST_SUCCESS,
   TOOGLE_LIKE_POST_FAIL,
-  OPEN_POST_DETAIL
+  GET_POST_DETAIL_REQUEST,
+  GET_POST_DETAIL_SUCCESS,
+  GET_POST_DETAIL_FAIL,
+  CHANGE_HASHTAG_PARAM,
+  CHANGE_CATEGORY_PARAM,
+  GET_LIKED_POST_REQUEST,
+  GET_LIKED_POST_SUCCESS,
+  GET_LIKED_POST_FAIL,
 } from '../constants/mutationTypes';
 
 const initState = {
@@ -60,13 +69,34 @@ const initState = {
     result: {},
     error: null,
   },
+  likedPost: {
+    requesting: false,
+    status: '',
+    result: null,
+    error: null,
+  },
   likePost: {
     requesting: false,
     status: '',
     result: null,
     error: null,
   },
-  postDetailId: null
+  linkingOpening: {
+    requesting: false,
+    status: '',
+    result: null,
+    error: null,
+  },
+  postDetail: {
+    requesting: false,
+    status: '',
+    result: null,
+    error: null,
+  },
+  postQuery: {
+    hashtag: null,
+    category: null,
+  },
 };
 
 const actions = {
@@ -77,7 +107,6 @@ const actions = {
       const data = get(res, 'data');
       commit(GET_CATEGORIES_SUCCESS, { data });
     } catch (error) {
-      console.log(serializeError(error));
       commit(GET_CATEGORIES_FAIL, { error: serializeError(error) });
     }
   },
@@ -103,7 +132,6 @@ const actions = {
       const { data } = res;
       commit(SAVE_POST_SUCCESS, { data });
     } catch (error) {
-      console.log(serializeError(error));
       commit(SAVE_POST_FAIL, { error: serializeError(error) });
     }
   },
@@ -118,8 +146,21 @@ const actions = {
       const data = get(res, 'data');
       commit(GET_MY_POST_SUCCESS, data);
     } catch (error) {
-      console.log(serializeError(error));
       commit(GET_MY_POST_FAIL, { error: serializeError(error) });
+    }
+  },
+
+  async getLikedPost({ commit }, params) {
+    commit(GET_LIKED_POST_REQUEST);
+    try {
+      const res = await Post.getLikedPosts({
+        ...params,
+        limit: POSTS_PER_PAGE,
+      });
+      const data = get(res, 'data');
+      commit(GET_LIKED_POST_SUCCESS, data);
+    } catch (error) {
+      commit(GET_LIKED_POST_FAIL, { error: serializeError(error) });
     }
   },
 
@@ -133,7 +174,6 @@ const actions = {
       const data = get(res, 'data');
       commit(GET_POSTS_SUCCESS, data);
     } catch (error) {
-      console.log(serializeError(error));
       commit(GET_POSTS_FAIL, { error: serializeError(error) });
     }
   },
@@ -141,24 +181,22 @@ const actions = {
   async deletePost({ commit }, body) {
     commit(DELETE_POST_REQUEST);
     try {
-      console.log(body);
       const res = await Post.deletePost(body);
       const data = get(res, 'data');
       commit(DELETE_POST_SUCCESS, data);
     } catch (error) {
-      console.log(serializeError(error));
       commit(DELETE_POST_FAIL, { error: serializeError(error) });
     }
   },
 
   async openPostLinking({ commit }, body) {
+    commit(OPEN_POST_LINKING_REQUEST);
     try {
       const { postId } = body;
-      const res = await Post.openPostLinking(body);
-      console.log(res);
-      commit(OPEN_POST_LINKING, postId);
+      await Post.openPostLinking(body);
+      commit(OPEN_POST_LINKING_SUCCESS, postId);
     } catch (error) {
-      console.log(serializeError(error));
+      commit(OPEN_POST_LINKING_FAIL, { error: serializeError(error) });
     }
   },
 
@@ -166,17 +204,33 @@ const actions = {
     commit(TOOGLE_LIKE_POST_REQUEST, body);
     try {
       const res = await Post.likePost(body);
-      console.log(res);
-      commit(TOOGLE_LIKE_POST_SUCCESS, body);
+      const data = get(res, 'data');
+      commit(TOOGLE_LIKE_POST_SUCCESS, data);
     } catch (error) {
       console.log(serializeError(error));
       commit(TOOGLE_LIKE_POST_FAIL, { error: serializeError(error), ...body });
     }
   },
 
-  openPostDetail({ commit }, { postId }) {
-    commit(OPEN_POST_DETAIL, postId);
-  }
+  async getPostDetail({ commit }, id) {
+    commit(GET_POST_DETAIL_REQUEST);
+    try {
+      const res = await Post.getPostDetail(id);
+      const { data } = res;
+      commit(GET_POST_DETAIL_SUCCESS, { data });
+    } catch (error) {
+      console.log(serializeError(error));
+      commit(GET_POST_DETAIL_FAIL, { error: serializeError(error) });
+    }
+  },
+
+  changeHashtagParam({ commit }, hashtag) {
+    commit(CHANGE_HASHTAG_PARAM, hashtag);
+  },
+
+  changeCategoryParam({ commit }, category) {
+    commit(CHANGE_CATEGORY_PARAM, category);
+  },
 };
 
 const mutations = {
@@ -223,9 +277,28 @@ const mutations = {
       };
   },
   [GET_MY_POST_FAIL](state, payload) {
-    state.publicPost.requesting = false;
-    state.publicPost.status = 'error';
-    state.publicPost.error = payload.error;
+    state.myPost.requesting = false;
+    state.myPost.status = 'error';
+    state.myPost.error = payload.error;
+  },
+  [GET_LIKED_POST_REQUEST](state) {
+    state.likedPost.requesting = true;
+    state.likedPost.status = '';
+  },
+  [GET_LIKED_POST_SUCCESS](state, payload) {
+    state.likedPost.requesting = false;
+    state.likedPost.status = 'success';
+    state.likedPost.result = payload.page === 1
+      ? payload
+      : {
+        ...payload,
+        data: [...get(state, 'likedPost.result.data', []), ...get(payload, 'data', [])],
+      };
+  },
+  [GET_LIKED_POST_FAIL](state, payload) {
+    state.likedPost.requesting = false;
+    state.likedPost.status = 'error';
+    state.likedPost.error = payload.error;
   },
   [GET_POSTS_REQUEST](state, payload) {
     state.publicPost.requesting = true;
@@ -265,7 +338,15 @@ const mutations = {
     state.postDeleting.status = 'error';
     state.postDeleting.error = payload.error;
   },
-  [OPEN_POST_LINKING](state, payload) {
+  [OPEN_POST_LINKING_REQUEST](state) {
+    state.linkingOpening.requesting = true;
+    state.linkingOpening.status = '';
+    state.linkingOpening.result = null;
+  },
+  [OPEN_POST_LINKING_SUCCESS](state, payload) {
+    state.linkingOpening.requesting = false;
+    state.linkingOpening.status = 'success';
+    state.linkingOpening.result = payload;
     state.publicPost.result = {
       ...state.publicPost.result,
       data: get(state, 'publicPost.result.data', []).map(post => (post.id !== payload
@@ -275,6 +356,25 @@ const mutations = {
           view: post.view + 1,
         }),),
     };
+    if (payload === get(state, 'postDetail.result.data.id')) {
+      const currentView = get(state, 'postDetail.result.data.view');
+      set(state, 'postDetail.result.data.view', currentView + 1);
+    }
+
+    state.likedPost.result = {
+      ...state.likedPost.result,
+      data: get(state, 'likedPost.result.data', []).map(post => (post.id !== payload
+        ? post
+        : {
+          ...post,
+          view: post.view + 1,
+        }),),
+    };
+  },
+  [OPEN_POST_LINKING_FAIL](state, payload) {
+    state.linkingOpening.requesting = true;
+    state.linkingOpening.status = 'error';
+    state.linkingOpening.error = payload.error;
   },
   [TOOGLE_LIKE_POST_REQUEST](state, payload) {
     state.likePost.requesting = true;
@@ -289,7 +389,7 @@ const mutations = {
             __meta__: {
               ...get(post, '__meta__'),
               isUserLiked: 0,
-              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) - 1
+              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) - 1,
             },
           }),),
       }
@@ -302,10 +402,26 @@ const mutations = {
             __meta__: {
               ...get(post, '__meta__'),
               isUserLiked: 1,
-              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) + 1
+              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) + 1,
             },
           }),),
       };
+    if (payload.postId === get(state, 'postDetail.result.data.id')) {
+      const currentLike = parseInt(get(state, 'postDetail.result.data.__meta__.totalLikeds'), 10);
+      set(
+        state,
+        'postDetail.result.data.__meta__.totalLikeds',
+        currentLike + (payload.hasLiked ? -1 : 1),
+      );
+      set(state, 'postDetail.result.data.__meta__.isUserLiked', payload.hasLiked ? 0 : 1);
+    }
+
+    if (payload.hasLiked) {
+      state.likedPost.result = {
+        ...get(state, 'likedPost.result', {}),
+        data: get(state, 'likedPost.result.data', []).filter(post => post.id !== payload.postId),
+      };
+    }
   },
   [TOOGLE_LIKE_POST_SUCCESS](state, payload) {
     state.likePost.requesting = false;
@@ -326,7 +442,7 @@ const mutations = {
             __meta__: {
               ...get(post, '__meta__'),
               isUserLiked: 1,
-              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) + 1
+              totalLikeds: parseInt(get(post, '__meta__.totalLikeds'), 10) + 1,
             },
           }),),
       }
@@ -343,17 +459,49 @@ const mutations = {
             },
           }),),
       };
+
+    if (payload.postId === get(state, 'postDetail.result.data.id')) {
+      const currentLike = parseInt(get(state, 'postDetail.result.data.__meta__.totalLikeds'), 10);
+      set(
+        state,
+        'postDetail.result.data.__meta__.totalLikeds',
+        currentLike + (payload.hasLiked ? 1 : -1),
+      );
+      set(state, 'postDetail.result.data.__meta__.isUserLiked', payload.hasLiked ? 1 : 0);
+    }
   },
-  [OPEN_POST_DETAIL] (state, payload) {
-    state.postDetailId = payload;
-  }
+
+  [GET_POST_DETAIL_REQUEST](state) {
+    state.postDetail.requesting = true;
+    state.postDetail.status = '';
+    state.postDetail.result = null;
+  },
+  [GET_POST_DETAIL_SUCCESS](state, payload) {
+    state.postDetail.requesting = false;
+    state.postDetail.status = 'success';
+    state.postDetail.result = payload;
+  },
+  [GET_POST_DETAIL_FAIL](state, payload) {
+    state.postDetail.requesting = false;
+    state.postDetail.status = 'error';
+    state.postDetail.error = payload.error;
+  },
+
+  [CHANGE_HASHTAG_PARAM](state, payload) {
+    state.postQuery.hashtag = payload;
+  },
+
+  [CHANGE_CATEGORY_PARAM](state, payload) {
+    state.postQuery.category = payload;
+  },
 };
 
 const getters = {
   categories: state => get(state, 'category.result.data', []),
   myPosts: state => get(state, 'myPost.result.data', []),
+  likedPosts: state => get(state, 'likedPost.result.data', []),
   publicPosts: state => get(state, 'publicPost.result.data', []),
-  postDetail: state => get(state, 'publicPost.result.data', []).find(el => el.id === state.postDetailId),
+  postDetail: state => get(state, 'postDetail.result.data'),
 };
 
 export default {

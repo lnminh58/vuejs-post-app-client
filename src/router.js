@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import { get } from 'lodash';
+import { get, set } from 'lodash';
 
 // eslint-disable-next-line import/no-cycle
 import store from '@/store';
@@ -10,7 +10,9 @@ import Profile from './views/Profile.vue';
 import Login from './views/Login.vue';
 import ForgetPassword from './views/ForgetPassword.vue';
 import Post from './views/Post.vue';
+import Bookmark from './views/Bookmark.vue';
 import PostEdit from './views/PostEdit.vue';
+import PostDetail from './views/PostDetail.vue';
 import PageNotFound from './views/Error/PageNotFound.vue';
 
 Vue.use(Router);
@@ -23,6 +25,9 @@ const router = new Router({
       path: '/',
       name: 'home',
       component: Home,
+      meta: {
+        isShowPostDetailInModal: true,
+      },
     },
     {
       path: '/profile',
@@ -33,6 +38,51 @@ const router = new Router({
       path: '/post',
       name: 'post',
       component: Post,
+      meta: {
+        isShowPostDetailInModal: true,
+      },
+    },
+    {
+      path: '/post/liked',
+      name: 'post-liked',
+      component: Bookmark,
+      meta: {
+        isShowPostDetailInModal: true,
+      },
+    },
+    {
+      path: '/post-detail/:id',
+      name: 'post-detail',
+      beforeEnter: (to, from, next) => {
+        const isShowPostDetailInModal = from.matched.some(view => get(view, 'meta.isShowPostDetailInModal'),);
+
+        if (!isShowPostDetailInModal) {
+          set(to, 'matched[0].components', {
+            default: PostDetail,
+            modal: false,
+          });
+          set(to, 'query.isModal', false);
+        }
+
+        console.log(to);
+        if (isShowPostDetailInModal) {
+          if (from.matched.length > 1) {
+            // copy nested router
+            const childrenView = from.matched.slice(1, from.matched.length);
+            set(to, 'matched', [...get(to, 'matched'), ...childrenView]);
+          }
+
+          if (to.matched[0].components) {
+            const fromDefault = get(from, 'matched[0].components.default');
+
+            set(to, 'matched[0].components.default', fromDefault);
+            set(to, 'matched[0].components.globalModal', PostDetail);
+          }
+          set(to, 'query.isModal', true);
+        }
+        next();
+      },
+      // component: PostDetail,
     },
     {
       path: '/post/post-edit',
