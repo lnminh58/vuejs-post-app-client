@@ -12,10 +12,16 @@ import ForgetPassword from './views/ForgetPassword.vue';
 import Post from './views/Post.vue';
 import Bookmark from './views/Bookmark.vue';
 import PostEdit from './views/PostEdit.vue';
+import Chat from './views/Chat.vue';
 import PostDetail from './views/PostDetail.vue';
 import PageNotFound from './views/Error/PageNotFound.vue';
 
 Vue.use(Router);
+
+let isHardNav = false;
+window.addEventListener('popstate', () => {
+  isHardNav = true;
+});
 
 const router = new Router({
   mode: 'history',
@@ -55,17 +61,13 @@ const router = new Router({
       name: 'post-detail',
       beforeEnter: (to, from, next) => {
         const isShowPostDetailInModal = from.matched.some(view => get(view, 'meta.isShowPostDetailInModal'),);
-
-        if (!isShowPostDetailInModal) {
+        if (!isShowPostDetailInModal || isHardNav) {
           set(to, 'matched[0].components', {
             default: PostDetail,
             modal: false,
           });
           set(to, 'query.isModal', false);
-        }
-
-        console.log(to);
-        if (isShowPostDetailInModal) {
+        } else {
           if (from.matched.length > 1) {
             // copy nested router
             const childrenView = from.matched.slice(1, from.matched.length);
@@ -88,6 +90,11 @@ const router = new Router({
       path: '/post/post-edit',
       name: 'post-edit',
       component: PostEdit,
+    },
+    {
+      path: '/message',
+      name: 'message',
+      component: Chat,
     },
     {
       path: '/login',
@@ -134,5 +141,10 @@ router.beforeEach((to, from, next) => {
 
   return next();
 });
+
+router.afterEach(() => {
+  isHardNav = false;
+});
+
 
 export default router;

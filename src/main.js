@@ -21,6 +21,8 @@ import store from './store';
 import lodash from './mixins/lodash';
 import moment from './mixins/moment';
 
+import './chat';
+
 Vue.config.productionTip = false;
 
 const mixins = [lodash, moment];
