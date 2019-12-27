@@ -16,16 +16,4 @@ ws.on('close', () => {
   console.log('on close', isConnected);
 });
 
-const chat = ws.subscribe('chat:new');
-chat.on('ready', () => {
-  console.log('ready');
-  chat.emit('message', 'hello');
-});
-
-chat.on('error', error => {
-  console.log('error chat', error);
-});
-
-chat.on('close', () => {
-  console.log('closed');
-});
+export default ws;

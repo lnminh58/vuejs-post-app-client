@@ -121,7 +121,7 @@ export default {
       GENDER,
       toggleSidebar: false,
       autoToggleSideBar: true,
-      routes: [{ path: '/', label: 'Home' }],
+      routes: [{ path: '/', label: 'Home' }, { path: '/message', label: 'Message' }],
     };
   },
   computed: {
