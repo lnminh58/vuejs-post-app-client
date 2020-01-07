@@ -7,4 +7,18 @@ export default class Chat {
       params,
     });
   }
+
+  static getUserConversation(params, config = {}) {
+    return http.get('/users/conversation', {
+      ...config,
+      params,
+    });
+  }
+
+  static findExistConversation(params, config = {}) {
+    return http.get('users/find-conversation-by-topic', {
+      ...config,
+      params,
+    });
+  }
 }

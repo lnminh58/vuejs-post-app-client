@@ -46,6 +46,9 @@ import {
   RESET_PASSWORD_REQUEST,
   RESET_PASSWORD_SUCCESS,
   RESET_PASSWORD_FAIL,
+  SEARCH_USER_BY_NAME_REQUEST,
+  SEARCH_USER_BY_NAME_SUCCESS,
+  SEARCH_USER_BY_NAME_FAIL,
 } from '../constants/mutationTypes';
 
 const initState = {
@@ -107,6 +110,12 @@ const initState = {
     requesting: false,
     status: '',
     result: {},
+    error: null,
+  },
+  userSearching: {
+    requesting: false,
+    status: '',
+    result: null,
     error: null,
   },
 };
@@ -265,6 +274,18 @@ const actions = {
     } catch (error) {
       console.log(serializeError(error));
       commit(RESET_PASSWORD_FAIL, { error: serializeError(error) });
+    }
+  },
+
+  async searchUserByName({ commit }, pramas) {
+    commit(SEARCH_USER_BY_NAME_REQUEST);
+    try {
+      const res = await User.searchUserByName(pramas);
+      const { data } = res;
+      commit(SEARCH_USER_BY_NAME_SUCCESS, { data });
+    } catch (error) {
+      console.log(serializeError(error));
+      commit(SEARCH_USER_BY_NAME_FAIL, { error: serializeError(error) });
     }
   },
 
@@ -434,6 +455,20 @@ const mutations = {
     state.passwordResetting.status = 'error';
     state.passwordResetting.error = payload.error;
   },
+  [SEARCH_USER_BY_NAME_REQUEST](state) {
+    state.userSearching.requesting = true;
+    state.userSearching.status = '';
+  },
+  [SEARCH_USER_BY_NAME_SUCCESS](state, payload) {
+    state.userSearching.requesting = false;
+    state.userSearching.status = 'success';
+    state.userSearching.result = payload;
+  },
+  [SEARCH_USER_BY_NAME_FAIL](state, payload) {
+    state.userSearching.requesting = false;
+    state.userSearching.status = 'error';
+    state.userSearching.error = payload.error;
+  },
   // [SIGN_OUT_REQUEST](state) {
   //   state.signOut.requesting = true;
   //   state.signOut.status = '';
@@ -465,6 +500,7 @@ const mutations = {
 const getters = {
   currentUser: state => get(state, 'signIn.result'),
   userProfile: state => get(state, 'profile.result'),
+  searchingUsers: state => get(state, 'userSearching.result.data', [])
 };
 
 export default {

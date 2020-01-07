@@ -165,6 +165,7 @@ export default {
   },
 
   watch: {
+    // eslint-disable-next-line func-names
     'form.confirmCode': function(newCode) {
       this.form.confirmCode = newCode.toUpperCase();
     },

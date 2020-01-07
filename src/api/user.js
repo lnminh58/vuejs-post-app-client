@@ -48,4 +48,11 @@ export default class User {
   static setUserAvatar(body, config) {
     return http.post('/users/set-user-avatar', body, config);
   }
+
+  static searchUserByName(params, config = {}) {
+    return http.get('/users/find-user-by-name', {
+      ...config,
+      params,
+    });
+  }
 }

@@ -11,6 +11,7 @@ import axios from 'axios';
 import { get } from 'lodash';
 import VueCarousel from 'vue-carousel';
 import { VueMasonryPlugin } from 'vue-masonry';
+import VueChatScroll from 'vue-chat-scroll';
 
 import VueToast from 'vue-toast-notification';
 import 'vue-toast-notification/dist/index.css';
@@ -36,6 +37,7 @@ Vue.use(VueToast, {
 Vue.use(GSignInButton);
 Vue.use(VueCarousel);
 Vue.use(VueMasonryPlugin);
+Vue.use(VueChatScroll);
 
 Vue.component('ValidationProvider', ValidationProvider);
 Vue.component('ValidationObserver', ValidationObserver);
