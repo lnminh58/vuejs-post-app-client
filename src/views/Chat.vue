@@ -152,7 +152,12 @@
           </div>
         </div>
         <div class="d-flex">
-          <input v-model="message" type="text" class="form-control mb-2" />
+          <input
+            @keyup.enter="sendMessage"
+            v-model="message"
+            type="text"
+            class="form-control mb-2"
+          />
           <button class="btn btn-outline-info mb-2 ml-2" @click="sendMessage">send</button>
         </div>
       </div>
