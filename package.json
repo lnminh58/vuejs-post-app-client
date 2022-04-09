@@ -37,7 +37,7 @@
     "jquery": "^3.4.1",
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.15",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "popper.js": "^1.15.0",
     "serialize-error": "^5.0.0",
     "vee-validate": "^3.0.11",
